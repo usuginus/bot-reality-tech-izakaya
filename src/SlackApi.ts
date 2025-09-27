@@ -1,9 +1,9 @@
 /******************************************************
  * Slack API client helpers
  ******************************************************/
-const SLACK_API_BASE = "https://slack.com/api";
+const SLACK_API_BASE: string = "https://slack.com/api";
 
-function getToken_() {
+function getToken_(): string {
   const token = PropertiesService.getScriptProperties().getProperty(
     "SLACK_BOT_TOKEN"
   );
@@ -12,7 +12,10 @@ function getToken_() {
   return token;
 }
 
-function slackFetch_(endpoint, payload) {
+function slackFetch_(
+  endpoint: string,
+  payload?: Record<string, unknown>
+): any {
   const token = getToken_();
   const res = UrlFetchApp.fetch(`${SLACK_API_BASE}/${endpoint}`, {
     method: "post",
@@ -31,7 +34,11 @@ function slackFetch_(endpoint, payload) {
   return json;
 }
 
-function postMessage_(channelId, text, blocks) {
+function postMessage_(
+  channelId: string,
+  text: string,
+  blocks?: unknown
+): any {
   return slackFetch_("chat.postMessage", {
     channel: channelId,
     text,

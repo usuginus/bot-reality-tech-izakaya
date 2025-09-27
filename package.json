@@ -1,5 +1,11 @@
 {
   "devDependencies": {
-    "@types/google-apps-script": "^2.0.4"
+    "@types/google-apps-script": "^2.0.4",
+    "typescript": "^5.9.2"
+  },
+  "scripts": {
+    "build": "npm run build:ts && npm run build:manifest",
+    "build:ts": "tsc",
+    "build:manifest": "node -e \"require('fs').copyFileSync('src/appsscript.json', 'dist/appsscript.json');\""
   }
 }

@@ -4,7 +4,10 @@
 const NEWCOMER_BATCH_SIZE = 10;
 const CHUNK_LEN = 2500;
 
-function postWelcomeWithChannelListForUsers_(postChannelId, usersBatch) {
+function postWelcomeWithChannelListForUsers_(
+  postChannelId: string,
+  usersBatch: SlackUser[]
+): void {
   const intro = buildIntro_();
 
   const namesLine = joinNamesJa_(usersBatch);
@@ -13,7 +16,7 @@ function postWelcomeWithChannelListForUsers_(postChannelId, usersBatch) {
 
   const channels = fetchAllPublicChannels_();
   const lines = channels.map(
-    (c) => `• #${c.name}  (${c.num_members ?? "n/a"} members)`
+    (c: SlackChannel) => `• #${c.name}  (${c.num_members ?? "n/a"} members)`
   );
 
   const body =
@@ -38,7 +41,7 @@ function postWelcomeWithChannelListForUsers_(postChannelId, usersBatch) {
   }
 }
 
-function checkNewMembersAndWelcome() {
+function checkNewMembersAndWelcome(): void {
   const postChannel = PropertiesService.getScriptProperties().getProperty(
     "DEFAULT_CHANNEL"
   );
@@ -68,7 +71,7 @@ function checkNewMembersAndWelcome() {
       Utilities.sleep(700);
       batch.forEach((u) => known.add(u.id));
     } catch (e) {
-      console.warn(`welcome batch failed: ${e.message || e}`);
+      console.warn(`welcome batch failed: ${e instanceof Error ? e.message : e}`);
     }
   }
   saveKnownUserIds_(known);

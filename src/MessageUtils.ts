@@ -1,13 +1,13 @@
 /******************************************************
  * Message composition helpers
  ******************************************************/
-function splitByLength_(s, n) {
-  const arr = [];
+function splitByLength_(s: string, n: number): string[] {
+  const arr: string[] = [];
   for (let i = 0; i < s.length; i += n) arr.push(s.slice(i, i + n));
   return arr;
 }
 
-function getPreferredName_(user) {
+function getPreferredName_(user: SlackUser): string {
   const n =
     (user.display_name && user.display_name.trim()) ||
     (user.real_name && user.real_name.trim()) ||
@@ -16,19 +16,19 @@ function getPreferredName_(user) {
   return n.endsWith("さん") ? n : `${n}さん`;
 }
 
-function joinNamesJa_(users) {
+function joinNamesJa_(users: SlackUser[]): string {
   return users.map(getPreferredName_).join("、");
 }
 
-function joinMentions_(users) {
+function joinMentions_(users: SlackUser[]): string {
   return users.map((u) => `<@${u.id}>`).join(" ");
 }
 
-function buildHeader_(namesLine) {
+function buildHeader_(namesLine: string): string {
   return `${namesLine}、「Tech居酒屋 -REALITY-」へようこそ 🚀`;
 }
 
-function buildIntro_() {
+function buildIntro_(): string {
   return `---
 ここでは利害関係を一切抜きにして、少年の頃の気持ちを思い出しながら、技術やお酒の話で盛り上がりましょう！
 ---
