@@ -48,3 +48,10 @@ function buildIntro_(): string {
 🍻 みんなで安心して語れる場を大事にしましょう！
 ---`;
 }
+
+function buildChannelListSection_(channels: SlackChannel[]): string {
+  const lines = channels.map(
+    (c) => `• #${c.name}  (${c.num_members ?? "n/a"} members)`
+  );
+  return `📋 公開チャンネル一覧（${channels.length}件）\n${lines.join("\n")}`;
+}

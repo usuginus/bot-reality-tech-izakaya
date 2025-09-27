@@ -15,16 +15,13 @@ function postWelcomeWithChannelListForUsers_(
   const header = buildHeader_(namesLine);
 
   const channels = fetchAllPublicChannels_();
-  const lines = channels.map(
-    (c: SlackChannel) => `• #${c.name}  (${c.num_members ?? "n/a"} members)`
-  );
+  const channelSection = buildChannelListSection_(channels);
 
   const body =
     `${header}\n` +
     `${mentionsLine}\n` +
     `${intro}\n` +
-    `📋 公開チャンネル一覧（${channels.length}件）\n` +
-    lines.join("\n");
+    `${channelSection}`;
 
   if (body.length <= CHUNK_LEN) {
     postMessage_(postChannelId, header, [
