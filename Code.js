@@ -112,6 +112,11 @@ function fetchAllHumanUsers_() {
   return users;
 }
 
+// ===== ヘッダー文 =====
+function buildHeader_(namesLine) {
+  return `${namesLine}、「Tech居酒屋 -REALITY-」へようこそ 🚀`;
+}
+
 // ===== ガイドライン文 =====
 function buildIntro_() {
   return `---
@@ -140,7 +145,7 @@ function postWelcomeWithChannelListForUsers_(postChannelId, usersBatch) {
 
   const namesLine = joinNamesJa_(usersBatch); // 例: "山田さん、鈴木さん"
   const mentionsLine = joinMentions_(usersBatch); // 例: "<@U1> <@U2>"
-  const header = `${namesLine}、「Tech居酒屋 -REALITY-」へようこそ 🚀`;
+  const header = buildHeader_(namesLine);
 
   const channels = fetchAllPublicChannels_();
   const lines = channels.map(
