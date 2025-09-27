@@ -4,10 +4,12 @@ Tech コミュニティ「Tech 居酒屋 -REALITY-」の Google Apps Script プ�
 
 ## プロジェクト構成
 
-- `Code.js` : Slack API とやり取りする本体ロジック。新規メンバー検知・歓迎メッセージ生成・チャンネル一覧取得をすべてここで行います。
-- `.clasp.json` : `clasp` 用の設定ファイル。既存 Apps Script プロジェクト（`scriptId`）と紐付けられています。
-- `appsscript.json` : Apps Script のメタ設定。タイムゾーンやランタイム（V8）を指定しています。
-- `package.json` / `package-lock.json` : ローカル開発向け依存関係管理。型補完用に `@types/google-apps-script` を利用しています。
+- `src/` : TypeScript ソースコード。`SlackApi.ts` や `Welcome.ts` など用途別に分割しています。
+- `src/appsscript.json` : Apps Script マニフェスト。ビルド時に `dist/appsscript.json` へコピーされます。
+- `src/types.d.ts` : Slack API から取得するデータ型を定義したローカル型定義。
+- `dist/` : `npm run build` で生成される Apps Script へのデプロイ用成果物（JavaScript + マニフェスト）。
+- `.clasp.json` : `rootDir` が `dist` を指す `clasp` 設定。コンパイル済みファイルをアップロードします。
+- `package.json` / `package-lock.json` : ローカル開発用依存関係とビルドスクリプト。`typescript` と `@types/google-apps-script` を利用しています。
 
 ## スクリプトプロパティ（環境変数）
 
@@ -33,7 +35,7 @@ Slack トークンや投稿先などの機密値は **Apps Script スクリプ�
    ```
 3. Apps Script プロジェクトと同期
    - 既存プロジェクトに紐付いている場合は `npx clasp pull` で最新を取得。
-   - 修正後は `npx clasp push` でデプロイ用プロジェクトに反映。
+   - `npm run build` で `dist/` を更新したあと、`npx clasp push` でアップロードします。
 4. スクリプトプロパティの設定
    - Apps Script エディタ (https://script.google.com) を開き、`SLACK_BOT_TOKEN` と `DEFAULT_CHANNEL` を追加。
 5. Slack App の準備
@@ -41,6 +43,13 @@ Slack トークンや投稿先などの機密値は **Apps Script スクリプ�
    - Bot を対象チャンネルに招待しておく (`/invite @your-bot`)。
 6. トリガーの設定
    - Apps Script の「トリガー」から `checkNewMembersAndWelcome` を時間主導で設定（例: 1 分おき）。
+
+## 開発フロー
+
+1. `src/` 以下の TypeScript ファイルを編集します。
+2. `npm run build` を実行して `dist/` を生成します。
+   - 開発中にウォッチしたい場合は `npx tsc --watch` などを利用してください。
+3. ビルド成果物を反映する場合は `npx clasp push` を実行します。
 
 ## 運用ノート
 
@@ -50,6 +59,6 @@ Slack トークンや投稿先などの機密値は **Apps Script スクリプ�
 
 ## 開発時のヒント
 
-- `Code.js` は V8 環境で実行されるため、ES2015+ の構文が利用できます。
+- TypeScript の設定は `tsconfig.json` で管理しています。Apps Script V8 ランタイムに合わせて ES2019 をターゲットにしています。
 - テスト実行は Apps Script エディタ、もしくは `npx clasp run checkNewMembersAndWelcome` からトリガーできます。ローカル Shell から実行する場合、実行前にスクリプトプロパティが有効なプロジェクトにデプロイされているか確認してください。
 - ガイドライン文やチャンネル一覧のフォーマットは `buildIntro_` や `postWelcomeWithChannelListForUsers_` を編集することで調整できます。
