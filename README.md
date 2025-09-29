@@ -4,7 +4,7 @@ Tech コミュニティ「Tech 居酒屋 -REALITY-」の Google Apps Script プ�
 
 ## プロジェクト構成
 
-- `src/` : TypeScript ソースコード。`SlackApi.ts` や `Welcome.ts` など用途別に分割しています。
+- `src/` : TypeScript ソースコード。`SlackApi.ts` や `Main.ts` など用途別に分割しています。
 - `src/appsscript.json` : Apps Script マニフェスト。ビルド時に `dist/appsscript.json` へコピーされます。
 - `src/types.d.ts` : Slack API から取得するデータ型を定義したローカル型定義。
 - `dist/` : `npm run build` で生成される Apps Script へのデプロイ用成果物（JavaScript + マニフェスト）。
