@@ -4,6 +4,28 @@
 const NEWCOMER_BATCH_SIZE = 10;
 const CHUNK_LEN = 2500;
 
+function postChunkedMessage_(
+  postChannelId: string,
+  header: string,
+  body: string
+): void {
+  if (body.length <= CHUNK_LEN) {
+    postMessage_(postChannelId, header, [
+      { type: "section", text: { type: "mrkdwn", text: body } },
+    ]);
+    return;
+  }
+
+  const parts = splitByLength_(body, CHUNK_LEN);
+  parts.forEach((part, idx) => {
+    const title = `${header} (part ${idx + 1})`;
+    postMessage_(postChannelId, title, [
+      { type: "section", text: { type: "mrkdwn", text: part } },
+    ]);
+    Utilities.sleep(300);
+  });
+}
+
 function postWelcomeWithChannelListForUsers_(
   postChannelId: string,
   usersBatch: SlackUser[]
@@ -23,19 +45,7 @@ function postWelcomeWithChannelListForUsers_(
     `${intro}\n` +
     `${channelSection}`;
 
-  if (body.length <= CHUNK_LEN) {
-    postMessage_(postChannelId, header, [
-      { type: "section", text: { type: "mrkdwn", text: body } },
-    ]);
-  } else {
-    const parts = splitByLength_(body, CHUNK_LEN);
-    parts.forEach((part, idx) => {
-      postMessage_(postChannelId, `${header} (part ${idx + 1})`, [
-        { type: "section", text: { type: "mrkdwn", text: part } },
-      ]);
-      Utilities.sleep(300);
-    });
-  }
+  postChunkedMessage_(postChannelId, header, body);
 }
 
 function checkNewMembersAndWelcome(): void {
@@ -78,4 +88,31 @@ function checkNewMembersAndWelcome(): void {
       newcomers.length / NEWCOMER_BATCH_SIZE
     )} batch(es).`
   );
+}
+
+function postWeeklyChannelDigest(): void {
+  const postChannel = PropertiesService.getScriptProperties().getProperty(
+    "DEFAULT_CHANNEL"
+  );
+  if (!postChannel)
+    throw new Error("DEFAULT_CHANNEL is not set in Script Properties.");
+
+  const channels = fetchAllPublicChannels_();
+  if (channels.length === 0) {
+    console.log("No public channels to report.");
+    return;
+  }
+
+  const today = Utilities.formatDate(
+    new Date(),
+    Session.getScriptTimeZone(),
+    "yyyy/MM/dd"
+  );
+  const header = `Tech居酒屋 -REALITY- 公開チャンネル案内 (${today})`;
+  const intro =
+    "Tech居酒屋 -REALITY- の公開チャンネル一覧です。気になるチャンネルにぜひ参加してください！";
+  const body = `${intro}\n\n${buildChannelListSection_(channels)}`;
+
+  postChunkedMessage_(postChannel, header, body);
+  console.log(`Posted public channel digest with ${channels.length} entries.`);
 }
