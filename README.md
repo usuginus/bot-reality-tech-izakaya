@@ -44,6 +44,7 @@ Slack トークンや投稿先などの機密値は **Apps Script スクリプ�
 6. トリガーの設定
    - Apps Script の「トリガー」から `checkNewMembersAndWelcome` を時間主導で設定（例: 1 分おき）。
    - 公開チャンネル一覧の定期投稿には `postWeeklyChannelDigest` を週 1 回など好みの頻度で追加。
+   - チャンネル盛り上がりレポートには `postChannelActivityHighlights` を週次などの定期トリガーに設定。
 
 ## 開発フロー
 
@@ -57,6 +58,8 @@ Slack トークンや投稿先などの機密値は **Apps Script スクリプ�
 - 新規参加者が複数いる場合も、1 投稿あたり 10 名までまとめて歓迎します。必要に応じて `NEWCOMER_BATCH_SIZE` を調整してください。
 - Slack メッセージはガイドライン、メンション、チャンネル一覧で構成されます。長文になった場合は 2,500 文字ごとに分割投稿します。
 - 公開チャンネル一覧投稿 (`postWeeklyChannelDigest`) も同様に 2,500 文字ごとに分割され、`DEFAULT_CHANNEL` に投稿されます。
+- チャンネル盛り上がりレポート (`postChannelActivityHighlights`) は過去 7 日間の投稿数とユニーク投稿者数で上位チャンネルを紹介します。
+- チャンネル盛り上がりレポート (`postChannelActivityHighlights`) は過去 7 日間の投稿数とユニーク投稿者数で上位チャンネルを紹介します。実行時に Bot が未参加の公開チャンネルには自動参加を試みます。
 - `KNOWN_USER_IDS_JSON` を削除すると、次回実行時にワークスペース全員が「既知ユーザー」として再登録され、スパム投稿を防ぎます。完全リセットしたい場合のみ手動削除ください。
 
 ## 開発時のヒント

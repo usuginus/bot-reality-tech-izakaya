@@ -37,3 +37,21 @@ type SlackUsersListResponse = {
     next_cursor?: string;
   };
 };
+
+type SlackMessage = {
+  type?: string;
+  user?: string;
+  bot_id?: string;
+  text?: string;
+  ts?: string;
+  subtype?: string;
+  thread_ts?: string;
+};
+
+type SlackConversationsHistoryResponse = {
+  messages?: SlackMessage[];
+  has_more?: boolean;
+  response_metadata?: {
+    next_cursor?: string;
+  };
+};

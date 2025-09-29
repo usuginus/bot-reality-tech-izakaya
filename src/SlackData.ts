@@ -1,6 +1,24 @@
 /******************************************************
  * Slack directory fetchers
  ******************************************************/
+const IGNORED_MESSAGE_SUBTYPES: Record<string, boolean> = {
+  channel_join: true,
+  channel_leave: true,
+  channel_topic: true,
+  channel_purpose: true,
+  channel_name: true,
+  channel_archive: true,
+};
+
+function ensureBotJoinedChannel_(channelId: string): void {
+  try {
+    slackFetch_("conversations.join", { channel: channelId });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (message.includes("already_in_channel")) return;
+    throw e;
+  }
+}
 function fetchAllPublicChannels_(): SlackChannel[] {
   let cursor: string | undefined;
   const all: SlackChannel[] = [];
@@ -39,4 +57,33 @@ function fetchAllHumanUsers_(): SlackUser[] {
     cursor = res.response_metadata?.next_cursor || "";
   } while (cursor);
   return users;
+}
+
+function fetchChannelMessageStats_(
+  channelId: string,
+  oldestTs: number
+): { messageCount: number; uniqueUsers: number } {
+  ensureBotJoinedChannel_(channelId);
+  Utilities.sleep(150);
+
+  let cursor: string | undefined;
+  let messageCount = 0;
+  const users = new Set<string>();
+  do {
+    const res = slackFetch_("conversations.history", {
+      channel: channelId,
+      limit: 200,
+      cursor,
+      oldest: oldestTs,
+      inclusive: false,
+    }) as SlackConversationsHistoryResponse;
+    (res.messages || []).forEach((msg) => {
+      if (msg.type && msg.type !== "message") return;
+      if (msg.subtype && IGNORED_MESSAGE_SUBTYPES[msg.subtype]) return;
+      messageCount += 1;
+      if (msg.user) users.add(msg.user);
+    });
+    cursor = res.response_metadata?.next_cursor || "";
+  } while (cursor);
+  return { messageCount, uniqueUsers: users.size };
 }

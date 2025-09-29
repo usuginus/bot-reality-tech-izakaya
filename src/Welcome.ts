@@ -3,6 +3,8 @@
  ******************************************************/
 const NEWCOMER_BATCH_SIZE = 10;
 const CHUNK_LEN = 2500;
+const CHANNEL_ACTIVITY_LOOKBACK_DAYS = 7;
+const FEATURED_CHANNEL_LIMIT = 5;
 
 function postChunkedMessage_(
   postChannelId: string,
@@ -115,4 +117,81 @@ function postWeeklyChannelDigest(): void {
 
   postChunkedMessage_(postChannel, header, body);
   console.log(`Posted public channel digest with ${channels.length} entries.`);
+}
+
+function postChannelActivityHighlights(): void {
+  const postChannel = PropertiesService.getScriptProperties().getProperty(
+    "DEFAULT_CHANNEL"
+  );
+  if (!postChannel)
+    throw new Error("DEFAULT_CHANNEL is not set in Script Properties.");
+
+  const channels = fetchAllPublicChannels_();
+  if (channels.length === 0) {
+    console.log("No public channels available for activity highlights.");
+    return;
+  }
+
+  const now = new Date();
+  const oldestDate = new Date(
+    now.getTime() - CHANNEL_ACTIVITY_LOOKBACK_DAYS * 24 * 60 * 60 * 1000
+  );
+  const oldestTs = Math.floor(oldestDate.getTime() / 1000);
+
+  const activity: Array<{
+    channel: SlackChannel;
+    messageCount: number;
+    uniqueUsers: number;
+  }> = [];
+
+  channels.forEach((channel) => {
+    try {
+      const stats = fetchChannelMessageStats_(channel.id, oldestTs);
+      if (stats.messageCount > 0) {
+        activity.push({ channel, messageCount: stats.messageCount, uniqueUsers: stats.uniqueUsers });
+      }
+      Utilities.sleep(150);
+    } catch (e) {
+      console.warn(
+        `Failed to fetch message history for ${channel.name}: ${
+          e instanceof Error ? e.message : e
+        }`
+      );
+      Utilities.sleep(300);
+    }
+  });
+
+  if (activity.length === 0) {
+    console.log("No channel activity detected in the lookback window.");
+    return;
+  }
+
+  activity.sort((a, b) => {
+    if (b.messageCount !== a.messageCount) return b.messageCount - a.messageCount;
+    return b.uniqueUsers - a.uniqueUsers;
+  });
+
+  const featured = activity.slice(0, FEATURED_CHANNEL_LIMIT);
+  const tz = Session.getScriptTimeZone();
+  const oldestLabel = Utilities.formatDate(oldestDate, tz, "yyyy/MM/dd");
+  const latestLabel = Utilities.formatDate(now, tz, "yyyy/MM/dd");
+  const header = `Tech居酒屋 -REALITY- 注目チャンネル (${oldestLabel}〜${latestLabel})`;
+  const intro = `過去${CHANNEL_ACTIVITY_LOOKBACK_DAYS}日間で特に盛り上がったチャンネルをピックアップしました。`;
+
+  const lines = featured.map((entry, idx) => {
+    const dailyAvg = entry.messageCount / CHANNEL_ACTIVITY_LOOKBACK_DAYS;
+    const dailyAvgRounded = Math.round(dailyAvg * 10) / 10;
+    return `${idx + 1}. #${entry.channel.name} — ${entry.messageCount}件 (${entry.uniqueUsers}人が投稿, 1日平均${dailyAvgRounded.toFixed(1)}件)`;
+  });
+
+  const othersCount = activity.length - featured.length;
+  if (othersCount > 0)
+    lines.push(`他にも ${othersCount} チャンネルで活動が確認されています。`);
+
+  const body = `${intro}\n\n${lines.join("\n")}`;
+
+  postChunkedMessage_(postChannel, header, body);
+  console.log(
+    `Posted channel activity highlights for ${featured.length} channel(s) out of ${activity.length}.`
+  );
 }
